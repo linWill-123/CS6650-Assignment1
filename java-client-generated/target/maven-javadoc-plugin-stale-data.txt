@@ -1,0 +1,78 @@
+/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/bin/javadoc
+@options
+@packages
+-classpath
+'/Users/willxzy/.m2/repository/io/swagger/core/v3/swagger-annotations/2.0.0/swagger-annotations-2.0.0.jar:/Users/willxzy/.m2/repository/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar:/Users/willxzy/.m2/repository/com/squareup/okhttp/okhttp/2.7.5/okhttp-2.7.5.jar:/Users/willxzy/.m2/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar:/Users/willxzy/.m2/repository/com/squareup/okhttp/logging-interceptor/2.7.5/logging-interceptor-2.7.5.jar:/Users/willxzy/.m2/repository/com/google/code/gson/gson/2.8.1/gson-2.8.1.jar:/Users/willxzy/.m2/repository/io/gsonfire/gson-fire/1.8.3/gson-fire-1.8.3.jar:/Users/willxzy/.m2/repository/org/threeten/threetenbp/1.3.5/threetenbp-1.3.5.jar'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'/Users/willxzy/Downloads/java-client-generated/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2023. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/willxzy/Downloads/java-client-generated/target/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'swagger-java-client 1.0.0 API'
+-use
+-version
+-windowtitle
+'swagger-java-client 1.0.0 API'
+io.swagger.client
+io.swagger.client
+io.swagger.client
+io.swagger.client
+io.swagger.client
+io.swagger.client.auth
+io.swagger.client.auth
+io.swagger.client.auth
+io.swagger.client.auth
+io.swagger.client.auth
+io.swagger.client
+io.swagger.client
+io.swagger.client
+io.swagger.client
+io.swagger.client.model
+io.swagger.client.model
+io.swagger.client.model
+io.swagger.client.model
+io.swagger.client.model
+io.swagger.client.api
+io.swagger.client
+io.swagger.client
+/Users/willxzy/.m2/repository/io/swagger/core/v3/swagger-annotations/2.0.0/swagger-annotations-2.0.0.jar = 1696710330055
+/Users/willxzy/.m2/repository/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar = 1696719652272
+/Users/willxzy/.m2/repository/com/squareup/okhttp/okhttp/2.7.5/okhttp-2.7.5.jar = 1696710330715
+/Users/willxzy/.m2/repository/com/squareup/okio/okio/1.6.0/okio-1.6.0.jar = 1696710330917
+/Users/willxzy/.m2/repository/com/squareup/okhttp/logging-interceptor/2.7.5/logging-interceptor-2.7.5.jar = 1696710330602
+/Users/willxzy/.m2/repository/com/google/code/gson/gson/2.8.1/gson-2.8.1.jar = 1696710330501
+/Users/willxzy/.m2/repository/io/gsonfire/gson-fire/1.8.3/gson-fire-1.8.3.jar = 1696710331002
+/Users/willxzy/.m2/repository/org/threeten/threetenbp/1.3.5/threetenbp-1.3.5.jar = 1696710331002
+/Users/willxzy/Downloads/java-client-generated/src/main/java/.DS_Store = 1696710090941
+/Users/willxzy/Downloads/java-client-generated/src/main/java = 1696710090941
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/tag-search-index.js = 1696869529708
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/overview-tree.html = 1696869529692
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/module-search-index.js = 1696869529707
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/index.html = 1696869529693
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/package-search-index.js = 1696869529707
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/jquery-ui.overrides.css = 1696869529728
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/serialized-form.html = 1696869529655
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/index-all.html = 1696869529721
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/allpackages-index.html = 1696869529707
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/member-search-index.js = 1696869529708
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/copy.svg = 1696869529725
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/script.js = 1696869529725
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/stylesheet.css = 1696869529725
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/search-page.js = 1696869529726
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/overview-summary.html = 1696869529722
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/help-doc.html = 1696869529724
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/element-list = 1696869529644
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/search.html = 1696869529722
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/allclasses-index.html = 1696869529706
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/type-search-index.js = 1696869529707
+/Users/willxzy/Downloads/java-client-generated/target/apidocs/search.js = 1696869529726
