@@ -8,17 +8,14 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class ThreadsRunner {
-    public static void runThreads(final String baseUrl, final String csvFilePath, int threadGroupSize,
+    public static void runThreads(final String baseUrl, final String imagePath, final String csvFilePath, int threadGroupSize,
                                   int numThreadGroups, int delaySeconds) throws InterruptedException, ExecutionException {
 
-        BlockingQueue<String> queue = new LinkedBlockingDeque<>();
-        String imagePath = "/Users/willxzy/Downloads/MicrosoftTeams-image.png";
-
         ExecutorService executor = Executors.newFixedThreadPool(threadGroupSize);
-        List<Future<int[]>> futures = new ArrayList<>();
+        List<Future<LogResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            Future<int[]> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,queue,100));
+            Future<LogResult> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,100));
             futures.add(executedRes);
         }
 
@@ -29,14 +26,12 @@ public class ThreadsRunner {
         long testStartTime = System.currentTimeMillis();
 
         // Submit consumer thread to write post results to csv
-        ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
-        Future<?> consumerFuture = consumerExecutor.submit(new ConsumerThread(queue,csvFilePath));
 
         executor = Executors.newFixedThreadPool(numThreadGroups*threadGroupSize);
 
         for (int i = 0; i < numThreadGroups; i++) {
             for (int j = 0; j < threadGroupSize; j++) {
-                Future<int[]> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,queue,1000));
+                Future<LogResult> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,1000));
                 futures.add(executedRes);
             }
             Thread.sleep(delaySeconds * 1000);
@@ -44,11 +39,6 @@ public class ThreadsRunner {
 
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-
-        queue.put("POISON_PILL"); // after all producer threads recorded the logs, add this poison_pill to end of queue
-
-        consumerFuture.get();
-        consumerExecutor.shutdown();
 
         // end timing
         long testEndTime = System.currentTimeMillis();
@@ -59,9 +49,10 @@ public class ThreadsRunner {
         long totalFailure = 0;
 
         for (int i = 0; i < futures.size(); i++) {
-            int[] executedRes = futures.get(i).get();
-            totalSuccess += executedRes[0];
-            totalFailure += executedRes[1];
+            LogResult executedRes = futures.get(i).get();
+            totalSuccess += executedRes.getNumSuccess();
+            totalFailure += executedRes.getNumFailure();
+            writeBatchToFile(csvFilePath,executedRes.getLogEntries());
         }
 
         long throughput = totalSuccess / wallTime;
@@ -73,12 +64,7 @@ public class ThreadsRunner {
 
     }
 
-    private static void writeBatchToFile(String filename, BlockingQueue<String> queue) {
-        List<String> batchToWrite = new ArrayList<>();
-        while (!queue.isEmpty()) {
-            batchToWrite.add(queue.poll());
-        }
-
+    private static void writeBatchToFile(String filename, List<String> batchToWrite) {
         try (FileWriter fw = new FileWriter(filename, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {

@@ -7,6 +7,7 @@ public class ClientPart2 {
     int numThreadGroups;
     int delaySeconds;
     String BASE_URL;
+    String IMAGE_PATH;
     String RUN_STEP6;
 
     // Parse cmdline
@@ -43,6 +44,15 @@ public class ClientPart2 {
       return; // Exit the program if no URL is provided
     }
 
+    // Get BASE_URL
+    System.out.print("Enter the image path: ");
+    IMAGE_PATH = scanner.nextLine();
+    // Ensure the URL is not empty
+    if (IMAGE_PATH.isEmpty()) {
+      System.out.println("image cannot be empty. Exiting program.");
+      return; // Exit the program if no URL is provided
+    }
+
 
     // Get RUN_STEP6
     System.out.print("Do you want to run step 6? (yes/no): ");
@@ -73,7 +83,7 @@ public class ClientPart2 {
 
 
     // Testing
-    ThreadsRunner.runThreads(BASE_URL,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
+    ThreadsRunner.runThreads(BASE_URL,IMAGE_PATH,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
 //    RunningThreads.runThreads(BASE_URL,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
 //    RunningThreads.step6Calculation(fileGoTask3,step6File);
   }

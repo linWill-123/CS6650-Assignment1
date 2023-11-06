@@ -6,10 +6,13 @@ import io.swagger.client.model.AlbumsProfile;
 import io.swagger.client.model.ImageMetaData;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
-public class ProducerThread implements Callable<int[]> {
+public class ProducerThread implements Callable<LogResult> {
     private int numSuccess;
     private int numFailure;
 
@@ -17,19 +20,18 @@ public class ProducerThread implements Callable<int[]> {
     private DefaultApi apiInstance;
     private String imagePath;
 
-    private BlockingQueue<String> sharedQueue;
+    List<String> logEntries = new ArrayList<>();
 
-    public ProducerThread(String serverUrl, String imagePath,  BlockingQueue<String> sharedQueue, int numIterations) {
+    public ProducerThread(String serverUrl, String imagePath,  int numIterations) {
         ApiClient client = new ApiClient();
         client.setBasePath(serverUrl);
         this.apiInstance = new DefaultApi(client);
         this.imagePath = imagePath;
-        this.sharedQueue = sharedQueue;
         this.numIterations = numIterations;
     }
 
     @Override
-    public int[] call() {
+    public LogResult call() {
         File image = new File(imagePath);
         AlbumsProfile profile = new AlbumsProfile();
         profile.setArtist("Eminem");
@@ -41,7 +43,7 @@ public class ProducerThread implements Callable<int[]> {
             doGet("1");
         }
 
-        return new int[] {numSuccess,numFailure};
+        return new LogResult(numSuccess, numFailure, logEntries);
     }
 
     public void doPost(File image, AlbumsProfile profile) {
@@ -51,12 +53,12 @@ public class ProducerThread implements Callable<int[]> {
         try {
             ImageMetaData postResponse = apiInstance.newAlbum(image, profile); // Call Get
             latency = System.currentTimeMillis() - startTimestamp;
-            sharedQueue.add(startTimestamp + "," + "POST" + "," + latency+ "," + 200);
+            logEntries.add(startTimestamp + "," + "POST" + "," + latency+ "," + 200);
             numSuccess++;
 
         } catch (ApiException e) {
             latency = System.currentTimeMillis() - startTimestamp;
-            sharedQueue.add(startTimestamp + "," + "POST"+ "," + latency+ "," + e.getCode());
+            logEntries.add(startTimestamp + "," + "POST"+ "," + latency+ "," + e.getCode());
             System.err.println(e.getMessage());
             numFailure++;
         }
@@ -69,12 +71,12 @@ public class ProducerThread implements Callable<int[]> {
         try {
             AlbumInfo getResponse = apiInstance.getAlbumByKey(albumId); // Call Get
             latency = System.currentTimeMillis() - startTimestamp;
-            sharedQueue.add(startTimestamp + "," + "GET"+ "," + latency + "," + 200);
+            logEntries.add(startTimestamp + "," + "GET"+ "," + latency + "," + 200);
             numSuccess++;
 
         } catch (ApiException e) {
             latency = System.currentTimeMillis() - startTimestamp;
-            sharedQueue.add(startTimestamp + "," + "GET"+ "," + latency+ "," + e.getCode());
+            logEntries.add(startTimestamp + "," + "GET"+ "," + latency+ "," + e.getCode());
             System.err.println(e.getMessage());
             numFailure++;
         }
