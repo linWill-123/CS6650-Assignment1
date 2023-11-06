@@ -1,0 +1,9 @@
+String localBaseUrl = "http://localhost:8080/AlbumServlet_war_exploded";
+String localBaseUrlGo = "http://localhost:8080";
+
+String baseUrl = "http://35.88.143.173:8080/AlbumServlet2";
+String baseUrlGo = "http://34.222.62.252:8080";
+
+threadGroupSize = 10;
+numThreadGroups = 10;
+delaySeconds = 2;

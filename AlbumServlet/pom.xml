@@ -7,6 +7,8 @@
   <name>Archetype - AlbumServlet</name>
   <url>http://maven.apache.org</url>
 
+  <packaging>war</packaging>
+
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>

@@ -1,7 +1,7 @@
-import io.swagger.client.*;
+import io.swagger.client.ApiClient;
+import io.swagger.client.ApiException;
 import io.swagger.client.api.DefaultApi;
-import io.swagger.client.auth.*;
-import io.swagger.client.model.*;
+import io.swagger.client.model.AlbumInfo;
 
 public class DefaultApiExample {
 

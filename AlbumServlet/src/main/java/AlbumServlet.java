@@ -3,6 +3,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.servlet.*;
@@ -12,77 +13,58 @@ import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 
 @WebServlet(name = "AlbumServlet", value = "/albums")
-@MultipartConfig
+@MultipartConfig(
+        fileSizeThreshold = 1024*1024*10,
+        maxFileSize = 1024*1024*50,
+        maxRequestSize = 1024*1024*100
+)
 public class AlbumServlet extends HttpServlet {
+
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-
-    // Ensure the content type is multipart/form-data
+          throws ServletException, IOException {
+    // Early exit if the content type is not as expected
     if (!request.getContentType().startsWith("multipart/form-data")) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      response.getWriter().write("Invalid content type");
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid content type");
       return;
     }
 
-    byte[] image = null;
-    Profile profile = null;
-    String artist = null;
-    String title = null;
-    String year = null;
+    // We will parse parts only if needed, avoiding unnecessary processing
+    Part imagePart = request.getPart("image"); // This throws if not present
+    Part profilePart = request.getPart("profile"); // This throws if not present
 
+    // Now we are sure that we have the parts we can start processing
+    byte[] image = IOUtils.toByteArray(imagePart.getInputStream());
+    String profileContent = new String(IOUtils.toByteArray(profilePart.getInputStream()), StandardCharsets.UTF_8);
+
+    Profile profile;
     try {
-      // Handle uploaded file
-      Part imagePart = request.getPart("image");
-      if (imagePart != null) {
-        image = new byte[(int) imagePart.getSize()];
-      } else {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("POST Request body missing image field");
-        return;
-      }
-      // Handle profile field
-      Part profilePart = request.getPart("profile");
-      if (profilePart != null) {
-        // Read its input json string into input stream
-        byte[] input = new byte[(int) profilePart.getSize()];
-        profilePart.getInputStream().read(input);
-        String profileContent = new String(input, StandardCharsets.UTF_8);
-//        System.out.println(profileContent);
-          JsonObject profileJson =  JsonParser.parseString(profileContent).getAsJsonObject();
-          profile = new Profile(
+      JsonObject profileJson = JsonParser.parseString(profileContent).getAsJsonObject();
+      profile = new Profile(
               profileJson.get("artist").getAsString(),
               profileJson.get("title").getAsString(),
               profileJson.get("year").getAsString());
-        } else {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("POST Request body missing profile field");
-        return;
-      }
-    } catch (Exception e) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      response.getWriter().write("Error parsing form data");
+    } catch (JsonSyntaxException e) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid profile JSON format");
       return;
     }
-    // Create album, but we aren't going to add it to our AlbumStore
+
+    // Here you should have some logic to store the album, currently it's just being created
     String albumID = UUID.randomUUID().toString();
+    // Assume Album is a valid class that can store this information
     Album album = new Album(albumID, profile, image);
 
-    // Output response with album key
+    // Prepare and send response
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    PrintWriter writer = response.getWriter();
+
     JsonObject jsonResponse = new JsonObject();
+    jsonResponse.addProperty("albumID", albumID);
+    jsonResponse.addProperty("imageSize", image.length);
 
-    jsonResponse.addProperty("albumID",albumID);
-    jsonResponse.addProperty("imageSize", String.valueOf(image.length));
-    // Convert JsonObject to String and write to response
-    response.getWriter().write(jsonResponse.toString());
-  }
-
-  private String cleanProfileString(String profileContent) {
-    profileContent = profileContent.replace("class AlbumsProfile {", "{");
-    profileContent = profileContent.replace("artist: ", "\"artist\": \"");
-    profileContent = profileContent.replace("\n    ,\"title\": ", "\",\"title\": \"");
-    profileContent = profileContent.replace("\n    ,\"year\": ", "\",\"year\": \"");
-    profileContent = profileContent.replace("\n}", "\"}");
-    return profileContent;
+    writer.write(jsonResponse.toString());
+    writer.flush();
+    writer.close();
   }
 }

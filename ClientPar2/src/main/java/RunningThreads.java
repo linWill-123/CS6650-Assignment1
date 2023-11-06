@@ -4,14 +4,13 @@ import io.swagger.client.api.DefaultApi;
 import io.swagger.client.model.AlbumInfo;
 import io.swagger.client.model.AlbumsProfile;
 import io.swagger.client.model.ImageMetaData;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +21,7 @@ public class RunningThreads {
   private static AtomicInteger failure = new AtomicInteger(0);
 
   private static final int BATCH_SIZE = 1000;
-  private static List<String> logBatch = Collections.synchronizedList(new ArrayList<String>());
+  private static Queue<String> logBatch = new ConcurrentLinkedQueue<>();
 
   private static long wallTime;
   private static long testStartTime;
@@ -41,7 +40,7 @@ public class RunningThreads {
     executorService.shutdown();
     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
-    executorService = Executors.newFixedThreadPool(threadGroupSize);
+    executorService = Executors.newFixedThreadPool(threadGroupSize*numThreadGroups);
     testStartTime = System.currentTimeMillis();
 
     for (int group = 0; group < numThreadGroups; group++) {
@@ -54,6 +53,8 @@ public class RunningThreads {
     executorService.shutdown();
     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
+    writeBatchToFile(filePath);
+
     testEndTime = System.currentTimeMillis();
     wallTime = (testEndTime - testStartTime) / 1000;
     long throughput = success.get() / wallTime;
@@ -63,7 +64,7 @@ public class RunningThreads {
     System.out.println("Successful Requests: " + success);
     System.out.println("Failed Requests: " + failure);
 
-    List<Long> latencies = new ArrayList<>();
+    List<Long> latencies;
     latencies = CSVParser.parseLatenciesForSuccessfulRequests(filePath); // Parse latency information from csv
     Collections.sort(latencies);
     // Mean
@@ -110,7 +111,7 @@ public class RunningThreads {
         int localSuccess = 0;
         int localFailure = 0;
 
-        File image = new File("/Users/willxzy/Downloads/Assignment1.Problem1.jpg");
+        File image = new File("/Users/willxzy/Downloads/MicrosoftTeams-image.png");
         AlbumsProfile profile = new AlbumsProfile();
         profile.setArtist("Eminem");
         profile.setTitle("MMlp2");
@@ -121,8 +122,8 @@ public class RunningThreads {
           long endTimestamp;
           long latency;
 
-          // POST latency calculation
           startTimestamp = System.currentTimeMillis();
+          // POST latency calculation
           try {
             ImageMetaData postResponse = apiInstance.newAlbum(image, profile); // Call Get
             endTimestamp = System.currentTimeMillis();
@@ -136,15 +137,15 @@ public class RunningThreads {
             endTimestamp = System.currentTimeMillis();
             latency = endTimestamp - startTimestamp;
             appendToCSV(filePath, startTimestamp, "POST", latency, e.getCode());
-            System.err.println("Exception when calling DefaultApi");
+            System.err.println(e.getMessage());
             // Update Failure Count
             localFailure++;
           }
 
           // GET latency calculation
           try {
-            startTimestamp = System.currentTimeMillis();
             String albumID = "1"; // hardcoded albumID, GET returns pre-existing data, so albumID doesn't matter
+            startTimestamp = System.currentTimeMillis();
             AlbumInfo getResponse = apiInstance.getAlbumByKey(albumID); // Call GET
             endTimestamp = System.currentTimeMillis();
             latency = endTimestamp - startTimestamp;
@@ -156,7 +157,7 @@ public class RunningThreads {
             endTimestamp = System.currentTimeMillis();
             latency = endTimestamp - startTimestamp;
             appendToCSV(filePath, startTimestamp, "GET", latency, e.getCode());
-            System.err.println("Exception when calling DefaultApi");
+            System.err.println(e.getMessage());
             // Update Failure Count
             localFailure++;
           }
@@ -168,20 +169,24 @@ public class RunningThreads {
     });
   }
 
-  private synchronized static void appendToCSV(String filename, long startTime, String requestType, long latency, int responseCode) {
+  private static void appendToCSV(String filename, long startTime, String requestType, long latency, int responseCode) {
     logBatch.add(startTime + "," + requestType + "," + latency + "," + responseCode);
 
-    if (logBatch.size() >= BATCH_SIZE) {
-      writeBatchToFile(filename);
-      logBatch.clear();
-    }
+//    if (logBatch.size() >= BATCH_SIZE) {
+//      writeBatchToFile(filename);
+//    }
   }
 
-  private synchronized static void writeBatchToFile(String filename) {
+  private static void writeBatchToFile(String filename) {
+    List<String> batchToWrite = new ArrayList<>();
+    while (!logBatch.isEmpty()) {
+      batchToWrite.add(logBatch.poll());
+    }
+
     try (FileWriter fw = new FileWriter(filename, true);
-        BufferedWriter bw = new BufferedWriter(fw);
-        PrintWriter out = new PrintWriter(bw)) {
-      for (String log : logBatch) {
+         BufferedWriter bw = new BufferedWriter(fw);
+         PrintWriter out = new PrintWriter(bw)) {
+      for (String log : batchToWrite) {
         out.println(log);
       }
     } catch (IOException e) {

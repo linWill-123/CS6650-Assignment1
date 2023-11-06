@@ -1,12 +1,14 @@
-import io.swagger.client.*;
+import io.swagger.client.ApiClient;
+import io.swagger.client.ApiException;
 import io.swagger.client.api.DefaultApi;
-import io.swagger.client.auth.*;
-import io.swagger.client.model.*;
+import io.swagger.client.model.AlbumsProfile;
+import io.swagger.client.model.ImageMetaData;
+
 import java.io.File;
 
 public class DefaultAPIPostExample {
   public static void main(String[] args) {
-    String baseUrl = "http://localhost:8080/AlbumServlet_war_exploded";
+    String baseUrl = "http://35.88.143.173:8080/AlbumServlet2";
     ApiClient client = new ApiClient();
     client.setBasePath(baseUrl);
     DefaultApi apiInstance = new DefaultApi(client);
