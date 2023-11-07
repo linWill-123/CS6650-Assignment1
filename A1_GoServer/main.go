@@ -81,7 +81,7 @@ func getAlbumByID(c *gin.Context) {
 }
 
 func main() {
-    router := gin.Default()
+    router := gin.New()
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 

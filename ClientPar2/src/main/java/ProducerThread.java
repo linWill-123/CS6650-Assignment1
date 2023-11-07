@@ -8,30 +8,31 @@ import io.swagger.client.model.ImageMetaData;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Callable;
 
 public class ProducerThread implements Callable<LogResult> {
-    private int numSuccess;
-    private int numFailure;
-
-    private int numIterations;
+    private ApiClient client;
     private DefaultApi apiInstance;
     private String imagePath;
+    private int numIterations;
+    private int numSuccess = 0;
+    private int numFailure = 0;
+    private final List<String> logEntries;
+    private final CountDownLatch latch;
 
-    List<String> logEntries = new ArrayList<>();
-
-    public ProducerThread(String serverUrl, String imagePath,  int numIterations) {
-        ApiClient client = new ApiClient();
-        client.setBasePath(serverUrl);
+    public ProducerThread(String serverUrl, String imagePath, int numIterations, CountDownLatch latch) {
+        this.client = new ApiClient();
+        this.client.setBasePath(serverUrl);
         this.apiInstance = new DefaultApi(client);
         this.imagePath = imagePath;
         this.numIterations = numIterations;
+        this.logEntries = new ArrayList<>();
+        this.latch = latch;
     }
 
     @Override
-    public LogResult call() {
+    public LogResult call() throws Exception {
         File image = new File(imagePath);
         AlbumsProfile profile = new AlbumsProfile();
         profile.setArtist("Eminem");
@@ -39,10 +40,15 @@ public class ProducerThread implements Callable<LogResult> {
         profile.setYear("2001");
 
         for (int i = 0; i < numIterations; i++) {
-            doPost(image,profile);
+            doPost(image, profile);
             doGet("1");
         }
 
+        latch.countDown();
+        return getLogResult(); // Return the result at the end of the call method
+    }
+
+    public LogResult getLogResult() {
         return new LogResult(numSuccess, numFailure, logEntries);
     }
 
@@ -59,7 +65,7 @@ public class ProducerThread implements Callable<LogResult> {
         } catch (ApiException e) {
             latency = System.currentTimeMillis() - startTimestamp;
             logEntries.add(startTimestamp + "," + "POST"+ "," + latency+ "," + e.getCode());
-            System.err.println(e.getMessage());
+            System.err.println("Error in POST: " + e.getMessage());
             numFailure++;
         }
     }
@@ -77,7 +83,7 @@ public class ProducerThread implements Callable<LogResult> {
         } catch (ApiException e) {
             latency = System.currentTimeMillis() - startTimestamp;
             logEntries.add(startTimestamp + "," + "GET"+ "," + latency+ "," + e.getCode());
-            System.err.println(e.getMessage());
+            System.err.println("Error in Get: " +e.getMessage());
             numFailure++;
         }
     }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CSVParser {
-  public static List<Long> parseLatenciesForSuccessfulRequests(String filePath) {
+  public static List<Long> parseLatenciesForSuccessfulRequests(String filePath, String requestType) {
     List<Long> latencies = new ArrayList<>();
 
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -14,7 +14,8 @@ public class CSVParser {
         String[] values = line.split(",");
 
         int responseCode = Integer.parseInt(values[3]);
-        if (responseCode == 200) {
+        String loggedRequestType = values[1];
+        if (responseCode == 200 && loggedRequestType.equals(requestType)) {
           // If the request was successful, parse and add the latency to the list
           long latency = Long.parseLong(values[2]);
           latencies.add(latency);
@@ -51,7 +52,7 @@ public class CSVParser {
 
   public static void main(String[] args) {
     // Testing
-    List<Long> latencies = parseLatenciesForSuccessfulRequests("file-go-task1.csv");
+    List<Long> latencies = parseLatenciesForSuccessfulRequests("file-go-task1.csv", "GET");
     List<Long> startTimes = parseStartTimes("file-go-task1.csv");
 
     for (long latency : latencies) {

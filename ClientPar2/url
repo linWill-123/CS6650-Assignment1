@@ -1,11 +1,12 @@
 String localBaseUrl = "http://localhost:8080/AlbumServlet_war_exploded";
 String localBaseUrlGo = "http://localhost:8080";
 
-String baseUrl = "http://35.88.143.173:8080/AlbumServlet2";
-String baseUrlGo = "http://52.39.103.137:8080";
+String baseUrl = "http://34.217.215.104:8080/AlbumServlet2";
+String baseUrlGo = "http://52.24.96.238:8080";
 
 threadGroupSize = 10;
 numThreadGroups = 10;
 delaySeconds = 2;
 
 String imagePath = "/Users/willxzy/Downloads/MicrosoftTeams-image.png";
+/Users/willxzy/Downloads/MicrosoftTeams-reduced.png

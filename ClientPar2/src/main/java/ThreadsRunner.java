@@ -2,57 +2,93 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 public class ThreadsRunner {
-    public static void runThreads(final String baseUrl, final String imagePath, final String csvFilePath, int threadGroupSize,
-                                  int numThreadGroups, int delaySeconds) throws InterruptedException, ExecutionException {
+    public static void runThreads(final String baseUrl, final String imagePath, final String csvFilePath, final boolean doStep6,
+                                  int threadGroupSize, int numThreadGroups, int delaySeconds) throws InterruptedException, ExecutionException {
 
-        ExecutorService executor = Executors.newFixedThreadPool(threadGroupSize);
-        List<Future<LogResult>> futures = new ArrayList<>();
+        // Initialization
+        Queue<Future<LogResult>> futures = new ConcurrentLinkedQueue<>();
 
-        for (int i = 0; i < 10; i++) {
-            Future<LogResult> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,100));
-            futures.add(executedRes);
+        ExecutorService executorService = Executors.newFixedThreadPool(threadGroupSize);
+        CountDownLatch latch = new CountDownLatch(threadGroupSize);
+
+        for (int i = 0; i < threadGroupSize; i++) {
+            ProducerThread task = new ProducerThread(baseUrl, imagePath, 100, latch);
+            Future<LogResult> future = executorService.submit(task);
+            futures.add(future);
         }
 
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        executorService.shutdown();
+        latch.await();
+
 
         // Start timing
         long testStartTime = System.currentTimeMillis();
 
         // Submit consumer thread to write post results to csv
 
-        executor = Executors.newFixedThreadPool(numThreadGroups*threadGroupSize);
+        executorService = Executors.newFixedThreadPool(numThreadGroups);
+        CountDownLatch groupLatch = new CountDownLatch(numThreadGroups);
 
         for (int i = 0; i < numThreadGroups; i++) {
-            for (int j = 0; j < threadGroupSize; j++) {
-                Future<LogResult> executedRes = executor.submit(new ProducerThread(baseUrl,imagePath,1000));
-                futures.add(executedRes);
+            executorService.submit(() -> {
+                ExecutorService innerExecutorService = Executors.newFixedThreadPool(threadGroupSize);
+                CountDownLatch innerGroupLatch = new CountDownLatch(threadGroupSize);
+
+                for (int j = 0; j < threadGroupSize; j++) {
+                    ProducerThread task = new ProducerThread(baseUrl, imagePath, 1000, innerGroupLatch);
+                    Future<LogResult> future = innerExecutorService.submit(task);
+                    futures.add(future);
+                }
+
+                innerExecutorService.shutdown();
+
+                try {
+                    innerGroupLatch.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                groupLatch.countDown();
+
+            });
+
+            try {
+                Thread.sleep(delaySeconds * 1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-            Thread.sleep(delaySeconds * 1000);
         }
 
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        executorService.shutdown();
+        groupLatch.await();
 
         // end timing
         long testEndTime = System.currentTimeMillis();
+
 
         long wallTime = (testEndTime - testStartTime) / 1000;
 
         long totalSuccess = 0;
         long totalFailure = 0;
 
-        for (int i = 0; i < futures.size(); i++) {
-            LogResult executedRes = futures.get(i).get();
-            totalSuccess += executedRes.getNumSuccess();
-            totalFailure += executedRes.getNumFailure();
-            writeBatchToFile(csvFilePath,executedRes.getLogEntries());
+        for (Future<LogResult> future : futures) {
+            try {
+                LogResult result = future.get();
+                totalSuccess += result.getNumSuccess();
+                totalFailure += result.getNumFailure();
+                writeBatchToFile(csvFilePath,result.getLogEntries());
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // handle the interrupt
+            } catch (ExecutionException e) {
+                // handle the exception thrown from the task
+            }
         }
 
         long throughput = totalSuccess / wallTime;
@@ -61,6 +97,13 @@ public class ThreadsRunner {
         System.out.println("Throughput: " + throughput + " requests/second");
         System.out.println("Successful Requests: " + totalSuccess);
         System.out.println("Failed Requests: " + totalFailure);;
+
+        calcMetrics(csvFilePath,"GET");
+        calcMetrics(csvFilePath, "POST");
+
+        if (doStep6) {
+            step6Calculation(csvFilePath,"step6.csv", wallTime, testStartTime);
+        }
 
     }
 
@@ -76,9 +119,14 @@ public class ThreadsRunner {
         }
     }
 
-    private void calcMetrics(String csvFilePath) {
-        List<Long> latencies = CSVParser.parseLatenciesForSuccessfulRequests(csvFilePath); // Parse latency information from csv
+    private static void calcMetrics(String csvFilePath, String requestType) {
+        System.out.println("-----------------------");
+        System.out.println("Metrics for requestType: " + requestType);
+        System.out.println("-----------------------");
+
+        List<Long> latencies = CSVParser.parseLatenciesForSuccessfulRequests(csvFilePath, requestType);
         Collections.sort(latencies);
+
         // Mean
         long sum = 0;
         for (long latency : latencies) {
@@ -107,6 +155,8 @@ public class ThreadsRunner {
         long max = latencies.get(latencies.size() - 1);
         System.out.println("Min: " + min);
         System.out.println("Max: " + max);
+
+        System.out.println("-----------------------");
     }
 
     public static void step6Calculation(String srcFile, String dstFile, long wallTime, long testStartTime) {

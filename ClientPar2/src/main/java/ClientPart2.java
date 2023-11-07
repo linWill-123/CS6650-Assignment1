@@ -44,6 +44,7 @@ public class ClientPart2 {
       return; // Exit the program if no URL is provided
     }
 
+
     // Get BASE_URL
     System.out.print("Enter the image path: ");
     IMAGE_PATH = scanner.nextLine();
@@ -83,9 +84,8 @@ public class ClientPart2 {
 
 
     // Testing
-    ThreadsRunner.runThreads(BASE_URL,IMAGE_PATH,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
-//    RunningThreads.runThreads(BASE_URL,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
-//    RunningThreads.step6Calculation(fileGoTask3,step6File);
+    ThreadsRunner.runThreads(BASE_URL,IMAGE_PATH,OUTPUT_PATH,RUN_STEP6.equalsIgnoreCase("yes"),threadGroupSize,numThreadGroups,delaySeconds);
+
   }
 
 }
