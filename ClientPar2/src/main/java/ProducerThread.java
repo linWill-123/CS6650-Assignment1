@@ -53,38 +53,54 @@ public class ProducerThread implements Callable<LogResult> {
     }
 
     public void doPost(File image, AlbumsProfile profile) {
-        long latency = 0;
-        long startTimestamp = System.currentTimeMillis();
-        // POST latency calculation
-        try {
-            ImageMetaData postResponse = apiInstance.newAlbum(image, profile); // Call Get
-            latency = System.currentTimeMillis() - startTimestamp;
-            logEntries.add(startTimestamp + "," + "POST" + "," + latency+ "," + 200);
-            numSuccess++;
+        boolean success = false;
+        int attempts = 0;
+        long latency;
+        long startTimestamp;
 
-        } catch (ApiException e) {
-            latency = System.currentTimeMillis() - startTimestamp;
-            logEntries.add(startTimestamp + "," + "POST"+ "," + latency+ "," + e.getCode());
-            System.err.println("Error in POST: " + e.getMessage());
-            numFailure++;
+        while (!success && attempts < 5) {
+            attempts++;
+            startTimestamp = System.currentTimeMillis();
+            try {
+                ImageMetaData postResponse = apiInstance.newAlbum(image, profile);
+                latency = System.currentTimeMillis() - startTimestamp;
+                logEntries.add(startTimestamp + "," + "POST" + "," + latency + "," + 200);
+                numSuccess++;
+                success = true; // Mark as success and break the loop
+            } catch (ApiException e) {
+                if (attempts >= 5) {
+                    latency = System.currentTimeMillis() - startTimestamp;
+                    logEntries.add(startTimestamp + "," + "POST" + "," + latency + "," + e.getCode());
+                    System.err.println("Attempt " + attempts + " Error in POST: " + e.getMessage());
+                    numFailure++; // Only increment failure after all retries have been attempted
+                }
+            }
         }
     }
 
     public void doGet(String albumId) {
-        long latency = 0;
-        long startTimestamp = System.currentTimeMillis();
-        // POST latency calculation
-        try {
-            AlbumInfo getResponse = apiInstance.getAlbumByKey(albumId); // Call Get
-            latency = System.currentTimeMillis() - startTimestamp;
-            logEntries.add(startTimestamp + "," + "GET"+ "," + latency + "," + 200);
-            numSuccess++;
+        boolean success = false;
+        int attempts = 0;
+        long latency;
+        long startTimestamp;
 
-        } catch (ApiException e) {
-            latency = System.currentTimeMillis() - startTimestamp;
-            logEntries.add(startTimestamp + "," + "GET"+ "," + latency+ "," + e.getCode());
-            System.err.println("Error in Get: " +e.getMessage());
-            numFailure++;
+        while (!success && attempts < 5) {
+            attempts++;
+            startTimestamp = System.currentTimeMillis();
+            try {
+                AlbumInfo getResponse = apiInstance.getAlbumByKey(albumId);
+                latency = System.currentTimeMillis() - startTimestamp;
+                logEntries.add(startTimestamp + "," + "GET" + "," + latency + "," + 200);
+                numSuccess++;
+                success = true; // Mark as success and break the loop
+            } catch (ApiException e) {
+                if (attempts >= 5) {
+                    latency = System.currentTimeMillis() - startTimestamp;
+                    logEntries.add(startTimestamp + "," + "GET" + "," + latency + "," + e.getCode());
+                    System.err.println("Attempt " + attempts + " Error in GET: " + e.getMessage());
+                    numFailure++; // Only increment failure after all retries have been attempted
+                }
+            }
         }
     }
 
