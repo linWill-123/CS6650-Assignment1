@@ -1,92 +1,84 @@
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientPart1 {
   public ClientPart1() { }
 
-  public static void main(String[] args) throws InterruptedException {
-    int threadGroupSize;
-    int numThreadGroups;
-    int delaySeconds;
 
-    // Local server path
-    String localBaseUrl = "http://localhost:8080/AlbumServlet_war_exploded";
-    String localBaseUrlGo = "http://localhost:8080";
+  public static void main(String[] args) throws InterruptedException, ExecutionException {
+      int threadGroupSize;
+      int numThreadGroups;
+      int delaySeconds;
+      String BASE_URL;
+      String IMAGE_PATH;
+      String RUN_STEP6;
 
-    // AWS Instance URl
-    String baseUrl = "http://34.221.232.209:8080/AlbumServlet_war";
-    String baseUrlGo = "http://34.221.232.209:8080";
+      // Parse cmdline
+      Scanner scanner = new Scanner(System.in); // Scanner to read user input
 
-    /* Test for Java */
-    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 10, delaySeconds = 2, result:");
-    threadGroupSize = 10;
-    numThreadGroups = 10;
-    delaySeconds = 2;
-    long test1Throughput = RunningThreads.runThreads(baseUrl,threadGroupSize,numThreadGroups,delaySeconds);
 
-    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 20, delaySeconds = 2, result:");
-    threadGroupSize = 10;
-    numThreadGroups = 20;
-    delaySeconds = 2;
-    long test2Throughput = RunningThreads.runThreads(baseUrl,threadGroupSize,numThreadGroups,delaySeconds);
+      // Get threadGroupSize
+      System.out.print("Enter the thread group size: ");
+      threadGroupSize = scanner.nextInt();
+      // Handle input for int (be careful about the nextLine after nextInt)
+      scanner.nextLine();
 
-    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 30, delaySeconds = 2, result:");
-    threadGroupSize = 10;
-    numThreadGroups = 30;
-    delaySeconds = 2;
-    long test3Throughput = RunningThreads.runThreads(baseUrl,threadGroupSize,numThreadGroups,delaySeconds);
 
-    /*Test for Go*/
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 10, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 10;
-//    delaySeconds = 2;
-//    long test1GoThroughput = RunningThreads.runThreads(baseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 20, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 20;
-//    delaySeconds = 2;
-//    long test2GoThroughput = RunningThreads.runThreads(baseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 30, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 30;
-//    delaySeconds = 2;
-//    long test3GoThroughput = RunningThreads.runThreads(baseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
+      // Get numThreadGroups
+      System.out.print("Enter the number of thread groups: ");
+      numThreadGroups = scanner.nextInt();
+      // Handle input for int
+      scanner.nextLine();
 
-    /* Test for Java Locally */
-//    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 10, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 10;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrl,threadGroupSize,numThreadGroups,delaySeconds);
-//
-//    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 20, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 20;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrl,threadGroupSize,numThreadGroups,delaySeconds);
-//
-//    System.out.println("Java with threadGroupSize = 10, numThreadGroups = 30, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 30;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrl,threadGroupSize,numThreadGroups,delaySeconds);
 
-    /*Test for Go Locally*/
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 10, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 10;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 20, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 20;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
-//    System.out.println("Go with threadGroupSize = 10, numThreadGroups = 30, delaySeconds = 2, result:");
-//    threadGroupSize = 10;
-//    numThreadGroups = 30;
-//    delaySeconds = 2;
-//    RunningThreads.runThreads(localBaseUrlGo,threadGroupSize,numThreadGroups,delaySeconds);
+      // Get delaySeconds
+      System.out.print("Enter the delay in seconds: ");
+      delaySeconds = scanner.nextInt();
+      // Handle input for int
+      scanner.nextLine();
 
-  }
+
+      // Get BASE_URL
+      System.out.print("Enter the base URL for the server: ");
+      BASE_URL = scanner.nextLine();
+      // Ensure the URL is not empty
+      if (BASE_URL.isEmpty()) {
+        System.out.println("URL cannot be empty. Exiting program.");
+        return; // Exit the program if no URL is provided
+      }
+
+
+      // Get BASE_URL
+      System.out.print("Enter the image path: ");
+      IMAGE_PATH = scanner.nextLine();
+      // Ensure the URL is not empty
+      if (IMAGE_PATH.isEmpty()) {
+        System.out.println("image cannot be empty. Exiting program.");
+        return; // Exit the program if no URL is provided
+      }
+
+
+
+      // Close the scanner
+      scanner.close();
+
+
+      // Output the gathered data for confirmation
+      System.out.println("============================================================================");
+      System.out.println("Thread Group Size: " + threadGroupSize);
+      System.out.println("Number of Thread Groups: " + numThreadGroups);
+      System.out.println("Delay Seconds: " + delaySeconds);
+      System.out.println("Base URL: " + BASE_URL);
+
+
+      // file names
+      String OUTPUT_PATH = "file-output.csv";
+      String STEP6_FILE = "step6.csv";
+
+
+      // Testing
+      ThreadsRunner.runThreads(BASE_URL,IMAGE_PATH,OUTPUT_PATH,threadGroupSize,numThreadGroups,delaySeconds);
+
+    }
 }
